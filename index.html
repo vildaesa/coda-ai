@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CODA code v2.0</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify/dist/purify.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <style>
+    /* (CSS sama seperti sebelumnya, silakan salin dari jawaban sebelumnya) */
+    * { margin:0; padding:0; box-sizing:border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; -webkit-tap-highlight-color:transparent; }
+    body { background:#121212; color:#f0f0f0; display:flex; flex-direction:column; justify-content:space-between; height:100vh; overflow:hidden; }
+    .main-container { flex-grow:1; display:flex; flex-direction:column; justify-content:center; align-items:center; padding:20px; width:100%; }
+    .header-section { text-align:center; margin-bottom:35px; user-select:none; }
+    .header-title { font-size:32px; font-weight:500; color:#d0d0d0; margin-bottom:8px; letter-spacing:-0.5px; }
+    .header-subtitle { font-size:15px; font-weight:300; color:#8a8a8a; }
+    .description-input-container { width:100%; max-width:550px; background:#1a1a1a; border:1px solid #2d2d2d; border-radius:24px; padding:18px 20px; box-shadow:0 4px 20px rgba(0,0,0,0.4); cursor:text; position:relative; transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease; }
+    .description-textarea { width:100%; background:transparent; border:none; outline:none; color:#f0f0f0; font-size:16px; resize:none; line-height:1.5; margin-bottom:12px; display:block; }
+    .description-textarea::placeholder { color:#727272; }
+    .input-controls-row { display:flex; justify-content:space-between; align-items:center; margin-top:5px; position:relative; }
+    .model-selector { background:#262626; color:#9e9e9e; border:1px solid #333; padding:7px 14px; border-radius:20px; font-size:13px; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px; transition: background 0.2s, color 0.2s; }
+    .model-selector:hover { background:#323232; color:#fff; }
+    .model-selector .fa-chevron-down { font-size:11px; color:#777; transition: transform 0.2s; }
+    .model-selector.open .fa-chevron-down { transform:rotate(180deg); }
+    .model-selector .model-logo { width:18px; height:18px; object-fit:contain; border-radius:4px; flex-shrink:0; }
+    .model-dropdown { position:absolute; bottom:48px; left:0; background:#1e1e1e; border:1px solid #333; border-radius:14px; width:180px; box-shadow:0 8px 24px rgba(0,0,0,0.5); display:none; flex-direction:column; overflow:hidden; z-index:100; }
+    .model-dropdown.show { display:flex; }
+    .model-option { background:transparent; border:none; color:#b0b0b0; padding:10px 16px; text-align:left; font-size:13px; cursor:pointer; transition: background 0.2s, color 0.2s; display:flex; align-items:center; gap:10px; }
+    .model-option .model-logo { width:18px; height:18px; object-fit:contain; border-radius:4px; flex-shrink:0; }
+    .model-option:hover { background:#2a2a2a; color:#fff; }
+    .model-option.selected { color:#61b8c1; font-weight:bold; background:rgba(97,184,193,0.05); }
+    .send-button { background:#fff; border:none; border-radius:50%; width:38px; height:38px; display:flex; justify-content:center; align-items:center; cursor:pointer; box-shadow:0 2px 8px rgba(255,255,255,0.1); transition: transform 0.15s, background 0.2s; color:#121212; font-size:16px; }
+    .send-button:hover { background:#e0e0e0; transform:scale(1.05); }
+    .send-button:active { transform:scale(0.95); }
+    .description-input-container:focus-within { transform:scale(1.02); border-color:#444; box-shadow:0 8px 30px rgba(0,0,0,0.6); }
+    .ad-banner { background:#161616; border-top:1px solid #242424; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; width:100%; user-select:none; }
+    .ad-content { display:flex; flex-direction:column; gap:2px; }
+    .ad-title { color:#e0e0e0; font-size:13px; font-weight:500; display:flex; align-items:center; gap:8px; }
+    .ad-title i { color:#f1c40f; font-size:14px; }
+    .ad-subtitle { color:#7a7a7a; font-size:11px; }
+    .ad-link { color:#61b8c1; text-decoration:none; }
+    .ad-copy-button { color:#61b8c1; background:transparent; border:none; font-size:13px; font-weight:600; cursor:pointer; padding:6px 12px; border-radius:6px; display:flex; align-items:center; gap:6px; transition: background 0.2s; }
+    .ad-copy-button:hover { background:rgba(97,184,193,0.1); }
+    .ai-modal-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:#0f0f0f; display:flex; flex-direction:column; z-index:5000; opacity:0; pointer-events:none; transition: opacity 0.3s; }
+    .ai-modal-overlay.active { opacity:1; pointer-events:auto; }
+    .ai-modal-navbar { display:flex; justify-content:space-between; align-items:center; padding:16px 24px; border-bottom:1px solid #222; background:#141414; }
+    .ai-modal-info { display:flex; align-items:center; gap:12px; }
+    .ai-status-indicator { width:8px; height:8px; background:#61b8c1; border-radius:50%; animation:pulse 1.5s infinite; }
+    @keyframes pulse { 0% { transform:scale(0.9); opacity:0.6; } 50% { transform:scale(1.2); opacity:1; } 100% { transform:scale(0.9); opacity:0.6; } }
+    .ai-modal-title { font-size:15px; font-weight:600; color:#fff; }
+    .ai-modal-close-btn { background:#222; border:1px solid #333; color:#ccc; padding:6px 16px; border-radius:10px; font-size:13px; cursor:pointer; transition: background 0.2s; display:flex; align-items:center; gap:8px; }
+    .ai-modal-close-btn:hover { background:#2d2d2d; color:#fff; }
+    .ai-modal-body { flex-grow:1; padding:24px; overflow-y:auto; max-width:800px; width:100%; margin:0 auto; line-height:1.6; font-size:15px; color:#e0e0e0; }
+    .ai-output-content h1, .ai-output-content h2, .ai-output-content h3 { color:#fff; margin-top:20px; margin-bottom:10px; font-weight:600; }
+    .ai-output-content h1 { font-size:22px; border-bottom:1px solid #222; padding-bottom:8px; }
+    .ai-output-content h2 { font-size:18px; }
+    .ai-output-content p { margin-bottom:14px; color:#ccc; }
+    .ai-output-content pre { background:#1a1a1a !important; border:1px solid #2d2d2d; border-radius:12px; padding:16px; margin:18px 0; overflow-x:auto; }
+    .ai-output-content code { font-family:'Fira Code', Consolas, Monaco, monospace; font-size:14px; }
+    .typing-cursor { display:inline-block; width:6px; height:15px; background:#61b8c1; margin-left:4px; animation:blink 0.8s infinite; vertical-align:middle; }
+    @keyframes blink { 50% { opacity:0; } }
+    .login-modal-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:9999; opacity:0; pointer-events:none; transition: opacity 0.25s; }
+    .login-modal-overlay.active { opacity:1; pointer-events:auto; }
+    .login-modal-card { background:#1a1a1a; border:1px solid #2e2e2e; border-radius:20px; width:85%; max-width:380px; padding:30px; text-align:center; transform:scale(0.9); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    .login-modal-overlay.active .login-modal-card { transform:scale(1); }
+    .login-modal-icon { font-size:48px; margin-bottom:16px; color:#fff; }
+    .login-modal-title { color:#fff; font-size:20px; font-weight:600; margin-bottom:8px; }
+    .login-modal-desc { color:#aaa; font-size:14px; line-height:1.5; margin-bottom:24px; }
+    .login-btn { background:#24292e; color:#fff; border:none; padding:12px 24px; border-radius:12px; font-size:16px; font-weight:600; cursor:pointer; display:inline-flex; align-items:center; gap:10px; transition: background 0.2s; }
+    .login-btn:hover { background:#2f363d; }
+    .login-btn i { font-size:20px; }
+    .modal-overlay { position:fixed; top:0; left:0; width:100vw; height:100vh; background:rgba(0,0,0,0.8); backdrop-filter:blur(4px); display:flex; justify-content:center; align-items:center; z-index:10000; opacity:0; pointer-events:none; transition: opacity 0.25s; }
+    .modal-overlay.active { opacity:1; pointer-events:auto; }
+    .modal-card { background:#1a1a1a; border:1px solid #2e2e2e; border-radius:20px; width:85%; max-width:380px; padding:24px; text-align:center; transform:scale(0.9); transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1); }
+    .modal-overlay.active .modal-card { transform:scale(1); }
+    .modal-icon { font-size:32px; margin-bottom:10px; color:#f1c40f; }
+    .modal-title { color:#fff; font-size:18px; font-weight:600; margin-bottom:12px; }
+    .modal-message { color:#aaa; font-size:14px; line-height:1.5; margin-bottom:24px; }
+    .modal-buttons { display:flex; gap:12px; justify-content:center; }
+    .modal-btn { padding:10px 20px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer; border:none; flex:1; }
+    .modal-btn-primary { background:#fff; color:#121212; }
+  </style>
+</head>
+<body>
+
+<div class="main-container">
+  <div class="header-section">
+    <h1 class="header-title">CODA code v2.0</h1>
+    <p class="header-subtitle">Build your website fast and free</p>
+  </div>
+
+  <div class="description-input-container" id="input-container">
+    <textarea id="prompt-textarea" class="description-textarea" placeholder="Describe the website you want to build" rows="1"></textarea>
+    <div class="input-controls-row">
+      <button class="model-selector" id="model-selector-btn">
+        <img class="model-logo" id="selected-model-logo" src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-avatar/avatars/kimi.webp" alt="KIMI-K2" />
+        <span id="active-model-name">KIMI-K2</span>
+        <i class="fas fa-chevron-down"></i>
+      </button>
+      <div class="model-dropdown" id="model-dropdown-menu">
+        <button class="model-option selected" data-model="KIMI-K2" data-logo="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-avatar/avatars/kimi.webp">
+          <img class="model-logo" src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-avatar/avatars/kimi.webp" alt="KIMI-K2" /> KIMI-K2
+        </button>
+        <button class="model-option" data-model="Qwen Coder" data-logo="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/qwen-color.png">
+          <img class="model-logo" src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-png/light/qwen-color.png" alt="Qwen Coder" /> Qwen Coder
+        </button>
+        <button class="model-option" data-model="Deepseek" data-logo="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-avatar/avatars/deepseek.webp">
+          <img class="model-logo" src="https://raw.githubusercontent.com/lobehub/lobe-icons/refs/heads/master/packages/static-avatar/avatars/deepseek.webp" alt="Deepseek" /> Deepseek
+        </button>
+      </div>
+      <button class="send-button" id="send-prompt-btn">
+        <i class="fas fa-paper-plane"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="ad-banner">
+  <div class="ad-content">
+    <span class="ad-title"><i class="fas fa-gem"></i> Hemat dengan kode Instant</span>
+    <span class="ad-subtitle">Rork · <a href="#" class="ad-link">Lihat promo</a></span>
+  </div>
+  <button class="ad-copy-button" id="ad-copy-btn"><i class="fas fa-copy"></i> Salin</button>
+</div>
+
+<!-- AI Modal -->
+<div class="ai-modal-overlay" id="ai-modal">
+  <div class="ai-modal-navbar">
+    <div class="ai-modal-info">
+      <div class="ai-status-indicator" id="ai-status-dot"></div>
+      <div class="ai-modal-title" id="ai-modal-headline">AI sedang memproses…</div>
+    </div>
+    <button class="ai-modal-close-btn" id="ai-modal-close-btn" style="display:none;">
+      <i class="fas fa-check-circle" style="color:#2ecc71;"></i> Selesai &amp; Tutup
+    </button>
+  </div>
+  <div class="ai-modal-body">
+    <div class="ai-output-content" id="ai-output-box"></div>
+    <span class="typing-cursor" id="ai-cursor"></span>
+  </div>
+</div>
+
+<!-- Login Modal -->
+<div class="login-modal-overlay" id="login-modal">
+  <div class="login-modal-card">
+    <div class="login-modal-icon"><i class="fab fa-github"></i></div>
+    <h2 class="login-modal-title">Login dengan GitHub</h2>
+    <p class="login-modal-desc">Anda perlu login untuk menggunakan AI ini. Klik tombol di bawah untuk melanjutkan.</p>
+    <button class="login-btn" id="github-login-btn">
+      <i class="fab fa-github"></i> Login dengan GitHub
+    </button>
+  </div>
+</div>
+
+<!-- Global Alert -->
+<div id="global-modal" class="modal-overlay">
+  <div class="modal-card">
+    <span class="modal-icon"><i class="fas fa-triangle-exclamation"></i></span>
+    <h2 class="modal-title" id="modal-title">Perhatian</h2>
+    <p class="modal-message" id="modal-message"></p>
+    <div class="modal-buttons">
+      <button class="modal-btn modal-btn-primary" id="modal-ok-btn">OK</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== KONFIGURASI =====
+  const API_BASE = 'https://coda-ai-worker.vildaesa.workers.dev';
+
+  // ===== DOM REFS =====
+  const textarea = document.getElementById('prompt-textarea');
+  const sendBtn = document.getElementById('send-prompt-btn');
+  const modelSelectorBtn = document.getElementById('model-selector-btn');
+  const modelDropdown = document.getElementById('model-dropdown-menu');
+  const activeModelName = document.getElementById('active-model-name');
+  const selectedModelLogo = document.getElementById('selected-model-logo');
+  const modelOptions = document.querySelectorAll('.model-option');
+  const aiModal = document.getElementById('ai-modal');
+  const aiOutputBox = document.getElementById('ai-output-box');
+  const aiCursor = document.getElementById('ai-cursor');
+  const aiHeadline = document.getElementById('ai-modal-headline');
+  const aiStatusDot = document.getElementById('ai-status-dot');
+  const aiCloseBtn = document.getElementById('ai-modal-close-btn');
+  const loginModal = document.getElementById('login-modal');
+  const githubLoginBtn = document.getElementById('github-login-btn');
+  const globalModal = document.getElementById('global-modal');
+  const modalMessage = document.getElementById('modal-message');
+  const modalOkBtn = document.getElementById('modal-ok-btn');
+
+  let selectedModel = 'KIMI-K2';
+
+  // ===== CHECK LOGIN =====
+  async function checkLogin() {
+    try {
+      const res = await fetch(`${API_BASE}/api/me`, {
+        credentials: 'include',
+      });
+      if (res.ok) {
+        const data = await res.json();
+        return data.loggedIn;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  // ===== SHOW ALERT =====
+  function showAlert(msg) {
+    modalMessage.textContent = msg;
+    globalModal.classList.add('active');
+  }
+  modalOkBtn.addEventListener('click', () => globalModal.classList.remove('active'));
+
+  // ===== DROPDOWN MODEL =====
+  modelSelectorBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    modelDropdown.classList.toggle('show');
+    modelSelectorBtn.classList.toggle('open');
+  });
+
+  modelOptions.forEach(option => {
+    option.addEventListener('click', function() {
+      document.querySelector('.model-option.selected')?.classList.remove('selected');
+      this.classList.add('selected');
+      const model = this.getAttribute('data-model');
+      const logo = this.getAttribute('data-logo');
+      selectedModel = model;
+      activeModelName.textContent = model;
+      selectedModelLogo.src = logo;
+      selectedModelLogo.alt = model;
+      modelDropdown.classList.remove('show');
+      modelSelectorBtn.classList.remove('open');
+    });
+  });
+
+  document.addEventListener('click', () => {
+    modelDropdown.classList.remove('show');
+    modelSelectorBtn.classList.remove('open');
+  });
+
+  // ===== SEND HANDLER =====
+  async function handleSend() {
+    const prompt = textarea.value.trim();
+    if (!prompt) {
+      showAlert('Silakan ketik deskripsi website yang ingin Anda buat!');
+      return;
+    }
+
+    const loggedIn = await checkLogin();
+    if (!loggedIn) {
+      loginModal.classList.add('active');
+      return;
+    }
+
+    aiOutputBox.innerHTML = '';
+    aiCloseBtn.style.display = 'none';
+    aiCursor.style.display = 'inline-block';
+    aiStatusDot.style.backgroundColor = '#61b8c1';
+    aiHeadline.textContent = selectedModel + ' sedang memproses kode…';
+    aiModal.classList.add('active');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/generate`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ prompt, model: selectedModel }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        showAlert(err.error || 'Terjadi kesalahan');
+        aiModal.classList.remove('active');
+        return;
+      }
+      const data = await res.json();
+      const code = data.code || '';
+
+      let index = 0;
+      let raw = '';
+      const fullText = code;
+      function typeStream() {
+        if (index < fullText.length) {
+          raw += fullText.charAt(index);
+          const html = marked.parse(raw);
+          aiOutputBox.innerHTML = DOMPurify.sanitize(html);
+          aiOutputBox.querySelectorAll('pre code').forEach(block => hljs.highlightElement(block));
+          index++;
+          setTimeout(typeStream, 15);
+          aiModal.querySelector('.ai-modal-body').scrollTop = aiModal.querySelector('.ai-modal-body').scrollHeight;
+        } else {
+          aiHeadline.textContent = 'Selesai di-generate oleh ' + selectedModel;
+          aiStatusDot.style.backgroundColor = '#2ecc71';
+          aiCursor.style.display = 'none';
+          aiCloseBtn.style.display = 'flex';
+        }
+      }
+      setTimeout(typeStream, 800);
+    } catch (e) {
+      showAlert('Gagal terhubung ke server');
+      aiModal.classList.remove('active');
+    }
+  }
+
+  // ===== EVENTS =====
+  sendBtn.addEventListener('click', handleSend);
+  textarea.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSend();
+    }
+  });
+
+  aiCloseBtn.addEventListener('click', () => {
+    aiModal.classList.remove('active');
+    textarea.value = '';
+    textarea.style.height = 'auto';
+  });
+
+  textarea.addEventListener('input', function() {
+    this.style.height = 'auto';
+    const h = this.scrollHeight;
+    this.style.height = (h > 150 ? 150 : h) + 'px';
+  });
+
+  document.getElementById('input-container').addEventListener('click', (e) => {
+    if (e.target.tagName !== 'BUTTON' && !e.target.closest('button')) {
+      textarea.focus();
+    }
+  });
+
+  githubLoginBtn.addEventListener('click', () => {
+    window.location.href = `${API_BASE}/auth/github`;
+  });
+
+  document.getElementById('ad-copy-btn').addEventListener('click', () => {
+    const text = 'CODA code v2.0 — Build your website fast and free. https://coda-code.example';
+    navigator.clipboard?.writeText(text).then(() => {
+      const btn = document.getElementById('ad-copy-btn');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<i class="fas fa-check"></i> Tersalin';
+      setTimeout(() => { btn.innerHTML = orig; }, 2000);
+    }).catch(() => showAlert('Gagal menyalin teks.'));
+  });
+</script>
+</body>
+</html>
