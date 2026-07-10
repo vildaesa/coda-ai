@@ -209,6 +209,10 @@
         const data = await res.json();
         return data.loggedIn;
       }
+
+if (loggedIn) {
+  document.getElementById('dashboard-link-container').style.display = 'block';
+}
     } catch (e) {}
     return false;
   }
