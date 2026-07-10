@@ -201,21 +201,17 @@
 
   // ===== CHECK LOGIN =====
   async function checkLogin() {
-    try {
-      const res = await fetch(`${API_BASE}/api/me`, {
-        credentials: 'include',
-      });
-      if (res.ok) {
-        const data = await res.json();
-        return data.loggedIn;
-      }
-
-if (loggedIn) {
-  document.getElementById('dashboard-link-container').style.display = 'block';
-}
-    } catch (e) {}
-    return false;
+  try {
+    const res = await fetch(`${API_BASE}/api/me`, { credentials: 'include' });
+    if (res.ok) {
+      const data = await res.json();
+      return data.loggedIn === true;
+    }
+  } catch (e) {
+    console.error('Check login error:', e);
   }
+  return false;
+ }
 
   // ===== SHOW ALERT =====
   function showAlert(msg) {
